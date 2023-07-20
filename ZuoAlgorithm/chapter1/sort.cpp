@@ -153,6 +153,46 @@ int getMinSum(vector<T> &arr,int s,int e){
 }
 
 // TODO 归并排序的推展问题：逆序对问题
+
+//TODO 堆排序问题
+
+//TODO 随机 快速排序
+template <typename T>
+pair<int,int> partition(vector<T> &arr,int s,int e){
+    int randIndex=s+(rand()%(e-s+1));
+    swap(arr,e,randIndex);//随机选择一个数，放在队尾，用来进行划分
+    int lessBound=s-1;
+    int moreBound=e+1;
+    //找到等于小于和大于区域的上下边界
+    int pointer=s;
+    int tempNumber=arr[e];
+    while(pointer<moreBound){
+        if(arr[pointer]<tempNumber&&moreBound>lessBound){
+            //和上边界的下一个交换
+            swap(arr,pointer,lessBound+1);
+            lessBound++;
+            pointer++;
+        }else if(arr[pointer]==tempNumber){
+            pointer++;
+        }else{
+            swap(arr,pointer,moreBound-1);
+            moreBound--;//pointer不能自增，因为此时还没有进行比较
+        }
+    }
+    return make_pair(lessBound,moreBound);
+}
+template <typename T>
+void quickSort(vector<T> &arr,int s,int e){
+    if(s<e){
+    pair<int,int> bound=partition(arr,s,e);
+    int lessBound=bound.first;
+    int moreBound=bound.second;
+    quickSort(arr,s,lessBound);
+    quickSort(arr,moreBound,e);
+    //分别对大于区小于区域进行partition划分 
+    }
+}
+
 template <typename T>
 void printArr(vector<T> arr, int len)
 {
@@ -234,7 +274,7 @@ int main()
     int maxLen = 500;
     int maxNumber = 500;
     int testTime = 50;
-/*  for (int i = 0; i < testTime; i++)
+    for (int i = 0; i < testTime; i++)
     {
         vector<int> arr01 = generateArr<int>(maxLen, maxNumber);
         vector<int> arr02 = arr01; // 直接复制就好了
@@ -243,19 +283,23 @@ int main()
         // printVector(arr01);
         // cout<<endl;
         // bubbleSort(arr02,arr02.size());
-        // printVector(arr02);
-        mergeSort(arr02, 0, arr02.size() - 1);
+        printVector(arr02);
+        // mergeSort(arr02, 0, arr02.size() - 1);
+        quickSort(arr02,0,arr02.size()-1);
         // cout<<endl;
-        // printVector(arr02);
+        printVector(arr02);
         // cout<<endl;
         isEqual(arr01, arr02);
         cout<<endl;
     }
-*/
-    vector<int> arr = generateArr<int>(20, maxNumber);
+
+/*
+  vector<int> arr = generateArr<int>(20, maxNumber);
     printVector(arr);
     int minSum=getMinSum(arr,0,arr.size()-1);
     printVector(arr);
     cout<<"minSum为："<<minSum<<endl;
+*/
+  
     return 0;
 }
