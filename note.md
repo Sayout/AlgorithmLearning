@@ -2,10 +2,18 @@
  * @Author: Sayout 2052707592@qq.com
  * @Date: 2023-07-17 09:09:31
  * @LastEditors: Sayout 2052707592@qq.com
- * @LastEditTime: 2023-07-17 09:53:03
+ * @LastEditTime: 2023-07-20 11:24:36
  * @FilePath: \C++\note.md
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
+## git 使用
+  git add 文件名
+  git commit -m "提交的提示内容"
+  git remote add origin git@github.com:Sayout/AlgorithmLearning
+  git push -u origin master 
+  <!-- 第一次提交 -u表示本地和远程相连接 -->
+  git push origin master
+  <!-- 往后的提交 -->
 ## 终端运行方式
 ```shell
 g++ hello.cpp word.cpp -o hello word

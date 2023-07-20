@@ -90,7 +90,7 @@ void merge(vector<T> &arr, int s, int e, int m)
         tempArr[p0++] = arr[p2++];
     }
     // copyVector(arr, tempArr);
-    //! TODO ! 这里每次copy就把原来的数组截断了,所以不能用Copy  
+    //TODO ! 这里每次copy就把原来的数组截断了,所以不能用Copy  
     p0=0;          
     while(s<=e){
         arr[s++]=tempArr[p0++];
@@ -113,7 +113,46 @@ void mergeSort(vector<T> &arr, int s, int e)
         merge(arr, s, e, m);
     }
 }
+// TODO 归并排序的推展问题：小和问题
+template<typename T>
+int mergeSum(vector<T> &arr ,int s,int e,int m){
+    int p1=s;
+    int p2=m+1;
+    int p0=0;
+    int minSum=0;
+    vector<T> tempArr(e-s+1,0);
+    while(p1<=m&&p2<=e){
+        minSum=arr[p1]<arr[p2] ? (e-p2+1)*arr[p1]+minSum:0+minSum;
+        tempArr[p0++]=arr[p1]<arr[p2] ? arr[p1++]:arr[p2++];
+        //merge过程产生小和,当两边相等时，一定是先拷贝右边的小和
+       
+    }
+    while(p1<=m){
+        tempArr[p0++]=arr[p1++];
+    }
+    while(p2<=e){
+        tempArr[p0++]=arr[p2++];
+    }
+    //记得拷贝
+    p0=0;
+    while(s<=e){
+        arr[s++]=tempArr[p0++];
+    }
+    return minSum;
+}
 
+template <typename T>
+int getMinSum(vector<T> &arr,int s,int e){
+    if(s>=e){
+        return 0;
+    }else{
+        //左边小和+右边小和+归并产生的小和
+        int m=s+((e-s)>>1);
+        return getMinSum(arr,s,m)+getMinSum(arr,m+1,e)+mergeSum(arr,s,e,m);
+    }
+}
+
+// TODO 归并排序的推展问题：逆序对问题
 template <typename T>
 void printArr(vector<T> arr, int len)
 {
@@ -184,7 +223,7 @@ int main()
 {
     srand(time(NULL));
     // 设定随机数种子
-    int arr[12] = {1, 5, 35, 71, 34, 56, 24, 13, 8, 13, 16, 13};
+    // int arr[12] = {1, 5, 35, 71, 34, 56, 24, 13, 8, 13, 16, 13};
     int arr_len = 12;
 
     // printArr(arr,arr_len);
@@ -195,7 +234,7 @@ int main()
     int maxLen = 500;
     int maxNumber = 500;
     int testTime = 50;
-    for (int i = 0; i < testTime; i++)
+/*  for (int i = 0; i < testTime; i++)
     {
         vector<int> arr01 = generateArr<int>(maxLen, maxNumber);
         vector<int> arr02 = arr01; // 直接复制就好了
@@ -212,6 +251,11 @@ int main()
         isEqual(arr01, arr02);
         cout<<endl;
     }
-
+*/
+    vector<int> arr = generateArr<int>(20, maxNumber);
+    printVector(arr);
+    int minSum=getMinSum(arr,0,arr.size()-1);
+    printVector(arr);
+    cout<<"minSum为："<<minSum<<endl;
     return 0;
 }
