@@ -1,10 +1,13 @@
 // 几种排序方法
 #include <iostream>
+using namespace std;
 #include <ctime>
 #include <vector>
 #include <queue>
 #include <cmath>
-using namespace std;
+#include<algorithm>
+#include<string>
+
 
 template <typename T>
 void swap(vector<T> &arr, int i, int j)
@@ -387,6 +390,28 @@ void quickSort(vector<T> &arr, int s, int e)
     }
 }
 
+//TODO 比较器的使用
+// 1.函数比较器
+bool cmp (const string &s1,const string &s2){
+    return s1.length()<s2.length();
+    //这里必须填的小于号，或者desc用大于号，返回布尔类型
+}
+// 2. https://zhuanlan.zhihu.com/p/146118861
+struct Comparetor{
+    bool operator ()(const string &s1,const string &s2){
+        return s1.length()<s2.length();
+    }
+};
+// 3.自定义类型
+// https://blog.csdn.net/qq_20817327/article/details/108302184
+
+struct Str
+{
+    string s;
+    bool operator < (const Str &str) const {
+        return s.length() < str.s.length();
+    }
+};
 int main()
 {
     srand(time(NULL));
@@ -433,16 +458,45 @@ int main()
     // cout<<"初始数组为："<<endl;
     // printVector(arr);
     // heapSort(arr);
-    vector<int> nearSort;
-    nearSort.push_back(2);
-    nearSort.push_back(4);
-    nearSort.push_back(8);
-    nearSort.push_back(0);
-    nearSort.push_back(9);
-    nearSort.push_back(5);
-    nearSort.push_back(7);
-    nearSort.push_back(7);
-    nearlySort(nearSort, 3);
-    printVector(nearSort);
+   
+    // vector<int> nearSort;
+    // nearSort.push_back(2);
+    // nearSort.push_back(4);
+    // nearSort.push_back(8);
+    // nearSort.push_back(0);
+    // nearSort.push_back(9);
+    // nearSort.push_back(5);
+    // nearSort.push_back(7);
+    // nearSort.push_back(7);
+    // nearlySort(nearSort, 3);
+    // printVector(nearSort);
+
+    vector<Str>s;
+    Str ss;
+    ss.s="a";
+    s.push_back(ss);
+    ss.s="aaaaaa";
+    s.push_back(ss);
+     ss.s="aa";
+    s.push_back(ss);
+     ss.s="aaaa";
+    s.push_back(ss);
+     ss.s="aaaaa";
+    s.push_back(ss);
+     ss.s="aaaa";
+    s.push_back(ss);
+     ss.s="aaa";
+    s.push_back(ss);
+    // stable_sort(s.begin(),s.end(),cmp);//比较函数重载
+    // stable_sort(s.begin(),s.end(),Comparetor());//结构体重载运算符
+    stable_sort(s.begin(),s.end());
+    // printVector(s);//!不能直接打印对象啊
+     for (int i = 0; i < s.size(); i++)
+    {
+        cout << s[i].s << "  ";
+    }
+    cout << endl;
+    cout << endl;
+
     return 0;
 }
