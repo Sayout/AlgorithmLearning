@@ -5,9 +5,8 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include <cmath>
-#include<algorithm>
-#include<string>
-
+#include <algorithm>
+#include <string>
 
 template <typename T>
 void swap(vector<T> &arr, int i, int j)
@@ -389,17 +388,86 @@ void quickSort(vector<T> &arr, int s, int e)
         // 分别对大于区小于区域进行partition划分
     }
 }
+// TODO 桶排序：使用词频法
+template <typename T>
+int getDig(T number)
+{
+    // 求得number是几位十进制
+    int digit = 0;
+    while (number != 0)
+    {
+        digit++;
+        number = number / 10;
+    }
+    return digit;
+}
+template <typename T>
+int getNumberByDigit(T number, int digit)
+{
+    int numDig = getDig(number);
+    if (digit > numDig)
+    {
+        return 0;
+    }
+    else
+    {
+        number = number / (pow(10, digit - 1));
+        return number % 10;
+    }
+}
+// 空间复杂度O(N),时间复杂度（digit*N）-->N
+template <typename T>
+void bucketSort(vector<T> &arr)
+{
+    // 确定导入导出的次数
+    int maxDigit = 0;
+    for (int i = 0; i < arr.size(); i++)
+    {
+        maxDigit = max(maxDigit, getDig(arr[i]));
+    }
+    // cout<<"maxDigit:"<<maxDigit<<endl;
+    for (int j = 1; j <= maxDigit; j++)
+    {
+        // 个位代表1
+        vector<int> wordFrequency(10, 0);
+        for (int m = 0; m < arr.size(); m++)
+        {
+            wordFrequency[getNumberByDigit(arr[m], j)]++; // 对应位置词频自增
+        }
+        // cout<<"wordFrequencyList: "<<endl;
+        // printVector(wordFrequency);
+        for (int m = 1; m < 10; m++)
+        {
+            // 生成前n项和
+            wordFrequency[m] = wordFrequency[m - 1] + wordFrequency[m];
+        }
+        // cout<<"wordFrequencyList:Sn: "<<endl;
+        // printVector(wordFrequency);
+        // 根据前n项和从后往前进行索引，放入帮助数组
+        vector<T> help(arr.size(), 0);
+        for (int m = arr.size() - 1; m >= 0; m--)
+        {
+            help[--wordFrequency[getNumberByDigit(arr[m], j)]] = arr[m];
+        }
+        //! 不要忘记放回原来的arr中
+        arr.swap(help);
+    }
+    // 定义词频数组
+}
 
-//TODO 比较器的使用
-// 1.函数比较器
-bool cmp (const string &s1,const string &s2){
-    return s1.length()<s2.length();
-    //这里必须填的小于号，或者desc用大于号，返回布尔类型
+// TODO 比较器的使用
+//  1.函数比较器
+bool cmp(const string &s1, const string &s2)
+{
+    return s1.length() < s2.length();
+    // 这里必须填的小于号，或者desc用大于号，返回布尔类型
 }
 // 2. https://zhuanlan.zhihu.com/p/146118861
-struct Comparetor{
-    bool operator ()(const string &s1,const string &s2){
-        return s1.length()<s2.length();
+struct Comparetor
+{
+    bool operator()(const string &s1, const string &s2)
+    {
+        return s1.length() < s2.length();
     }
 };
 // 3.自定义类型
@@ -408,10 +476,12 @@ struct Comparetor{
 struct Str
 {
     string s;
-    bool operator < (const Str &str) const {
+    bool operator<(const Str &str) const
+    {
         return s.length() < str.s.length();
     }
 };
+
 int main()
 {
     srand(time(NULL));
@@ -427,18 +497,21 @@ int main()
     int maxLen = 500;
     int maxNumber = 500;
     int testTime = 50;
-    for (int i = 0; i < testTime; i++)
+    for (int i = 0; i < 1; i++)
     {
-        vector<int> arr01 = generateArr<int>(maxLen, maxNumber);
+        vector<int> arr01 = generateArr<int>(50, maxNumber);
         vector<int> arr02 = arr01; // 直接复制就好了
+
         // printVector(arr01);
         // insertSort(arr01, arr01.size());
-        // printVector(arr01);
+        printVector(arr01);
         // cout<<endl;
         // bubbleSort(arr02,arr02.size());
         // printVector(arr02);
         // mergeSort(arr02, 0, arr02.size() - 1);
-        heapSort(arr01);
+        // heapSort(arr01);
+        bucketSort(arr01);
+        // printVector(arr01);
         quickSort(arr02, 0, arr02.size() - 1);
         // cout<<endl;
         // printVector(arr02);
@@ -458,7 +531,7 @@ int main()
     // cout<<"初始数组为："<<endl;
     // printVector(arr);
     // heapSort(arr);
-   
+
     // vector<int> nearSort;
     // nearSort.push_back(2);
     // nearSort.push_back(4);
@@ -471,27 +544,27 @@ int main()
     // nearlySort(nearSort, 3);
     // printVector(nearSort);
 
-    vector<Str>s;
+    vector<Str> s;
     Str ss;
-    ss.s="a";
+    ss.s = "a";
     s.push_back(ss);
-    ss.s="aaaaaa";
+    ss.s = "aaaaaa";
     s.push_back(ss);
-     ss.s="aa";
+    ss.s = "aa";
     s.push_back(ss);
-     ss.s="aaaa";
+    ss.s = "aaaa";
     s.push_back(ss);
-     ss.s="aaaaa";
+    ss.s = "aaaaa";
     s.push_back(ss);
-     ss.s="aaaa";
+    ss.s = "aaaa";
     s.push_back(ss);
-     ss.s="aaa";
+    ss.s = "aaa";
     s.push_back(ss);
     // stable_sort(s.begin(),s.end(),cmp);//比较函数重载
     // stable_sort(s.begin(),s.end(),Comparetor());//结构体重载运算符
-    stable_sort(s.begin(),s.end());
+    stable_sort(s.begin(), s.end());
     // printVector(s);//!不能直接打印对象啊
-     for (int i = 0; i < s.size(); i++)
+    for (int i = 0; i < s.size(); i++)
     {
         cout << s[i].s << "  ";
     }
