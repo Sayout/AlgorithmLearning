@@ -2,6 +2,8 @@
 #include <iostream>
 #include <ctime>
 #include <vector>
+#include <queue>
+#include <cmath>
 using namespace std;
 
 template <typename T>
@@ -237,7 +239,7 @@ void heapInsert(vector<T> &arr, int &heapSize)
     // insert时检查是否比父亲大，大的时候需要进行swap
     int index = heapSize;
 
-    while (arr[(index - 1) / 2] < arr[index])//这里的判断包含越界的情况
+    while (arr[(index - 1) / 2] < arr[index]) // 这里的判断包含越界的情况
     {
         swap(arr, (index - 1) / 2, index);
         index = (index - 1) / 2;
@@ -313,7 +315,32 @@ void heapSort(vector<T> &arr)
 
 // TODO堆结构的使用
 // TODO 优先级队列-->系统堆
-
+// 基本有序问题的求解
+template <typename T>
+void nearlySort(vector<T> &arr, int k)
+{
+    // 依次将前K个数进小根堆
+    priority_queue<int, vector<int>, greater<T>> que;
+    vector<int> tempArr;
+    // 优先级队列默认是大根堆，参数less<T>;小根堆参数是greater<T>
+    int i = 0;
+    int min = (arr.size() - 1) < k ? (arr.size() - 1) : k;
+    for (; i <= min; i++)
+    {
+        que.push(arr[i]);
+    }
+    int index = 0;
+    while (que.size() != 0)
+    {
+        tempArr.push_back(que.top());
+        que.pop();
+        if (i < arr.size())
+        {
+            que.push(arr[i++]);
+        }
+    }
+    arr.swap(tempArr);
+}
 // TODO 随机 快速排序
 template <typename T>
 pair<int, int> partition(vector<T> &arr, int s, int e)
@@ -406,5 +433,16 @@ int main()
     // cout<<"初始数组为："<<endl;
     // printVector(arr);
     // heapSort(arr);
+    vector<int> nearSort;
+    nearSort.push_back(2);
+    nearSort.push_back(4);
+    nearSort.push_back(8);
+    nearSort.push_back(0);
+    nearSort.push_back(9);
+    nearSort.push_back(5);
+    nearSort.push_back(7);
+    nearSort.push_back(7);
+    nearlySort(nearSort, 3);
+    printVector(nearSort);
     return 0;
 }
