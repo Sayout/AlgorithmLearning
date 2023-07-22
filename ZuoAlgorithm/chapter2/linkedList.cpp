@@ -4,6 +4,7 @@
 #include <vector>
 #include <ctime>
 #include <stack>
+#include <unordered_map>
 using namespace std;
 
 template <typename T>
@@ -395,8 +396,8 @@ void classifyList02(Node<T> *headNode)
     cout << "ranNum: " << randNum << endl;
     while (temp != nullptr)
     {
-        Node <T>*next=temp->next;
-        //记得保存next,不然等会划分全部变成nullptr
+        Node<T> *next = temp->next;
+        // 记得保存next,不然等会划分全部变成nullptr
         if (temp->value < randNum)
         {
             if (SH == nullptr)
@@ -405,10 +406,10 @@ void classifyList02(Node<T> *headNode)
             }
             else
             {
-                ST->next = temp;//注意，这里应该是尾巴的next进行连接
+                ST->next = temp; //!!注意，这里应该是尾巴的next进行连接
             }
             ST = temp;
-            ST->next=nullptr;//这一步不能忘记，否则会形成环形
+            ST->next = nullptr; //!!这一步不能忘记，否则会形成环形
         }
         else if (temp->value == randNum)
         {
@@ -421,7 +422,7 @@ void classifyList02(Node<T> *headNode)
                 ET->next = temp;
             }
             ET = temp;
-            ET->next=nullptr;//这一步不能忘记，否则会形成环形
+            ET->next = nullptr; // 这一步不能忘记，否则会形成环形
         }
         else
         {
@@ -432,28 +433,109 @@ void classifyList02(Node<T> *headNode)
             else
             {
                 BT->next = temp;
-                
             }
             BT = temp;
-            BT->next=nullptr;//这一步不能忘记，否则会形成环形
+            BT->next = nullptr; // 这一步不能忘记，否则会形成环形
         }
-        temp=next;
+        temp = next;
     }
     // 连接
-    if(ST!=nullptr){
-        //小于区域不为空
-        headNode->next=SH;
-        ST->next=(ET==nullptr)? BH:EH;
-        //TODO 后面的数：（BH:EH）还不能打括号,否则报错
+    if (ST != nullptr)
+    {
+        // 小于区域不为空
+        headNode->next = SH; //!!
+        ST->next = (ET == nullptr) ? BH : EH;
+        // TODO 后面的数：（BH:EH）还不能打括号,否则报错
     }
-    if(EH!=nullptr){
-        //等于区域不为空
-        ET->next=BH;
+    if (EH != nullptr)
+    {
+        // 等于区域不为空
+        ET->next = BH;
     }
-    if(ST==nullptr){
-        headNode->next=(EH==nullptr) ? BH:EH;
+    if (ST == nullptr)
+    {
+        headNode->next = (EH == nullptr) ? BH : EH;
     }
     printLinkedList(headNode);
+}
+
+// TODO5 复制含有随机指针节点的链表
+template <typename T>
+class RNode
+{
+public:
+    RNode<T> *next = nullptr;
+    RNode<T> *random = nullptr;
+    T value = 0;
+    RNode() {}
+    RNode(T v) { this->value = v; }
+};
+// method01 哈希表克隆方法
+template <typename T>
+RNode<T> *copyRandomLinkedList01(RNode<T> *headNode)
+{
+    unordered_map<RNode<T> *, RNode<T> *> linked_map;
+    RNode<T> *temp = headNode->next;
+    RNode<T> *Rhead = new RNode<T>;
+    RNode<T> *Rtemp;
+
+    while (temp != nullptr)
+    {
+        Rtemp = new RNode<T>();
+        Rtemp->value = temp->value;
+        linked_map[temp] = Rtemp;
+        // linked_map.insert({temp,Rtemp});
+        temp = temp->next;
+    }
+    // 注意还有一个空值需要记录
+    linked_map[nullptr] = nullptr;
+    temp = headNode->next;
+    while (temp != nullptr)
+    {
+        Rtemp = linked_map[temp];
+        Rtemp->next = linked_map[temp->next];
+        Rtemp->random = linked_map[temp->random];
+        temp = temp->next;
+    }
+    Rhead->next = linked_map[headNode->next];
+    return Rhead;
+}
+// method02 追加链表方法
+template <typename T>
+RNode<T> *copyRandomLinkedList02(RNode<T> *headNode)
+{
+    RNode<T> *temp = headNode->next;
+    RNode<T> *Rhead = new RNode<T>;
+    RNode<T> *Rtemp;
+    // 追加连接
+    while (temp != nullptr)
+    {
+        Rtemp = new RNode<T>();
+        Rtemp->value = temp->value;
+        Rtemp->next = temp->next;
+        temp->next = Rtemp;
+        temp = Rtemp->next;
+    }
+    // Random指针更新
+    temp = headNode->next;
+    while (temp != nullptr)
+    {
+        Rtemp = temp->next;
+        Rtemp->random = temp->random->next;
+        temp = temp->next->next;
+    }
+    //!!头指针指向
+    Rhead->next = headNode->next->next;
+    // 断开
+    temp = headNode->next;
+    while (temp != nullptr)
+    {
+        Rtemp = temp->next;
+        temp->next = temp->next->next;
+        temp = temp->next;
+        Rtemp->next = (temp != nullptr) ? temp->next : nullptr;
+    }
+    return Rhead;
 }
 int main()
 {
@@ -504,7 +586,54 @@ int main()
     generatorVec(arr, maxLen, maxNum);
     createLinkedList(arr, headNode);
     classifyList01(headNode);
-    createLinkedList(arr,headNode01);
+    createLinkedList(arr, headNode01);
     classifyList02(headNode01);
+
+    // 随即链表实例
+    RNode<int> *Rhead = new RNode<int>();
+    RNode<int> *Rnode01 = new RNode<int>(1);
+    RNode<int> *Rnode02 = new RNode<int>(2);
+    RNode<int> *Rnode03 = new RNode<int>(3);
+    RNode<int> *Rnode04 = new RNode<int>(4);
+    Rhead->next = Rnode01;
+    Rnode01->next = Rnode02;
+    Rnode02->next = Rnode03;
+    Rnode03->next = Rnode04;
+    Rnode01->random = Rnode03;
+    Rnode02->random = Rnode01;
+    Rnode03->random = Rnode02;
+    Rnode04->random = Rnode02;
+    RNode<int> *copyHead = copyRandomLinkedList02(Rhead);
+    // RNode<int> *copyHead = copyRandomLinkedList01(Rhead);
+
+    RNode<int> *temp = Rhead->next;
+    while (temp != nullptr)
+    {
+        cout << "value: " << temp->value << " ";
+        if (temp->next != nullptr)
+        {
+            cout << "next: " << temp->next->value << " ";
+        }
+        if (temp->next != nullptr)
+        {
+            cout << "random: " << temp->random->value << " ";
+        }
+        temp = temp->next;
+    }
+    cout << endl;
+    temp = copyHead->next;
+    while (temp != nullptr)
+    {
+        cout << "value: " << temp->value << " ";
+        if (temp->next != nullptr)
+        {
+            cout << "next: " << temp->next->value << " ";
+        }
+        if (temp->next != nullptr)
+        {
+            cout << "random: " << temp->random->value << " ";
+        }
+        temp = temp->next;
+    }
     return 0;
 }
