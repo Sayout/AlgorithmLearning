@@ -322,22 +322,155 @@ bool isReversable03(Node<T> *headNode)
     printLinkedList(headNode);
     return falg;
 }
+
+// TODO4 链表划分
+// Method01 利用数组 41-52:11min
+template <typename T>
+void swap(vector<T> &arr, int i, int j)
+{
+    T temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+}
+
+template <typename T>
+void classifyList01(Node<T> *headNode)
+{
+    Node<T> *temp = headNode->next;
+    vector<T> help;
+    while (temp != nullptr)
+    {
+        help.push_back(temp->value);
+        temp = temp->next;
+    }
+    int small = -1;
+    int big = help.size();
+    T randNum = help[rand() % big];
+    cout << "randNum: " << randNum << endl;
+    int i = 0;
+    while (i < big)
+    {
+        if (help[i] < randNum)
+        {
+            swap(help, ++small, i++);
+        }
+        else if (help[i] > randNum)
+        {
+            swap(help, --big, i);
+        }
+        else
+        {
+            i++;
+        }
+    }
+    i = 0;
+    temp = headNode->next;
+    while (temp != nullptr)
+    {
+        temp->value = help[i++];
+        temp = temp->next;
+    }
+    printLinkedList(headNode);
+    cout << endl;
+}
+// Method02 利用六个边界标志:这种情况可以保持整体稳定 12-
+template <typename T>
+void classifyList02(Node<T> *headNode)
+{
+    Node<T> *SH = nullptr;
+    Node<T> *ST = nullptr;
+    Node<T> *EH = nullptr;
+    Node<T> *ET = nullptr;
+    Node<T> *BH = nullptr;
+    Node<T> *BT = nullptr;
+    // 分别代表小于区域，等于区域，大于区域的头和尾
+    // 划分
+
+    Node<T> *temp = headNode->next;
+    if (temp == nullptr)
+    {
+        return;
+    }
+    T randNum = temp->value;
+    cout << "ranNum: " << randNum << endl;
+    while (temp != nullptr)
+    {
+        Node <T>*next=temp->next;
+        //记得保存next,不然等会划分全部变成nullptr
+        if (temp->value < randNum)
+        {
+            if (SH == nullptr)
+            {
+                SH = temp;
+            }
+            else
+            {
+                ST->next = temp;//注意，这里应该是尾巴的next进行连接
+            }
+            ST = temp;
+            ST->next=nullptr;//这一步不能忘记，否则会形成环形
+        }
+        else if (temp->value == randNum)
+        {
+            if (EH == nullptr)
+            {
+                EH = temp;
+            }
+            else
+            {
+                ET->next = temp;
+            }
+            ET = temp;
+            ET->next=nullptr;//这一步不能忘记，否则会形成环形
+        }
+        else
+        {
+            if (BH == nullptr)
+            {
+                BH = temp;
+            }
+            else
+            {
+                BT->next = temp;
+                
+            }
+            BT = temp;
+            BT->next=nullptr;//这一步不能忘记，否则会形成环形
+        }
+        temp=next;
+    }
+    // 连接
+    if(ST!=nullptr){
+        //小于区域不为空
+        headNode->next=SH;
+        ST->next=(ET==nullptr)? BH:EH;
+        //TODO 后面的数：（BH:EH）还不能打括号,否则报错
+    }
+    if(EH!=nullptr){
+        //等于区域不为空
+        ET->next=BH;
+    }
+    if(ST==nullptr){
+        headNode->next=(EH==nullptr) ? BH:EH;
+    }
+    printLinkedList(headNode);
+}
 int main()
 {
     srand(time(NULL));
     Node<int> *headNode = new Node<int>();
     Node<int> *headNode01 = new Node<int>();
-    vector<int> arr{1, 2, 2, 2, 2, 2, 1, 5};
+    // vector<int> arr{1, 2, 2, 2, 2, 2, 1, 5};
     vector<int> arr01{1, 3, 3};
-    createLinkedList(arr, headNode);
-    createLinkedList(arr01, headNode01);
-    // printPublicArea(headNode,headNode01);
-    cout << isReversable01(headNode) << endl;
-    cout << isReversable02(headNode) << endl;
-    cout << isReversable03(headNode) << endl;
-    cout << isReversable01(headNode01) << endl;
-    cout << isReversable02(headNode01) << endl;
-    cout << isReversable03(headNode01) << endl;
+    // createLinkedList(arr, headNode);
+    // createLinkedList(arr01, headNode01);
+    // // printPublicArea(headNode,headNode01);
+    // cout << isReversable01(headNode) << endl;
+    // cout << isReversable02(headNode) << endl;
+    // cout << isReversable03(headNode) << endl;
+    // cout << isReversable01(headNode01) << endl;
+    // cout << isReversable02(headNode01) << endl;
+    // cout << isReversable03(headNode01) << endl;
     /*
      vector<int> arr;
      int maxLen = 50;
@@ -365,6 +498,13 @@ int main()
         temp = headNode;
     }
     */
-
+    vector<int> arr;
+    int maxLen = 100;
+    int maxNum = 500;
+    generatorVec(arr, maxLen, maxNum);
+    createLinkedList(arr, headNode);
+    classifyList01(headNode);
+    createLinkedList(arr,headNode01);
+    classifyList02(headNode01);
     return 0;
 }
