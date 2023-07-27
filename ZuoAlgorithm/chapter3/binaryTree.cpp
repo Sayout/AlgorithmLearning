@@ -2,7 +2,7 @@
  * @Author: Sayout zwbalala@icloud.com
  * @Date: 2023-07-27 11:52:01
  * @LastEditors: Sayout zwbalala@icloud.com
- * @LastEditTime: 2023-07-27 18:15:05
+ * @LastEditTime: 2023-07-27 19:09:36
  * @FilePath: \C++\ZuoAlgorithm\chapter3\binaryTree.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -243,23 +243,81 @@ int depthPriority00(Node<T> *root)
     maxDepth = max(maxDepth, curr_nodes);
     return maxDepth;
 }
+// TODO 4递归套路一系列
+// 搜索二叉树：
+template <typename T>
+class SearchReturn
+{
+public:
+    T min;
+    T max;
+    bool isSearch;
+    SearchReturn(T min_, T max_, bool isSearch_)
+    {
+        this->min = min_;
+        this->max = max_;
+        this->isSearch = isSearch_;
+    }
+};
+template <typename T>
+SearchReturn<T> isSearchTree(Node<T> *root)
+{
+    // 搜索二叉树的中序遍历结果是一个递增的
+    // 除了全局变量记录外，还可以使用递归套路
+    // 这一题还是直接中序遍历全局白能量简单一点
+    if (root == nullptr)
+    {
+        return SearchReturn<T>((T)999, (T)-1, true);
+        // 这里初始化不初始好会出问题，当是叶子节点时，min,max都应当是自己
+    }
+    SearchReturn<T> SRL = isSearchTree(root->left);
+    SearchReturn<T> SRR = isSearchTree(root->right);
+    T maxL = SRL.max;
+    T minR = SRR.min;
+    T min = SRL.min <= root->value ? SRL.min : root->value;
+    min = min <= SRR.min ? min : SRR.min;
+    T max = SRL.max >= root->value ? SRL.max : root->value;
+    max = max >= SRR.max ? max : SRR.max;
+    bool isSearch = (SRL.isSearch) && (SRR.isSearch) && (maxL < root->value) && (minR > root->value);
+    return SearchReturn<T>(min, max, isSearch);
+    // 注意这里没有 new
+}
+template <typename T>
+bool isSearchTree00(Node<T> *root)
+{
+    static bool isSearch = true;
+    static T before;
+    if (root == nullptr)
+    {
+        return true;
+    }
+    if(isSearch==false) return false; 
+    isSearchTree00(root->left);
+    if (before > root->value)
+    {
+        isSearch = false;
+    }
+    before = root->value;
+    isSearchTree00(root->right);
+    return isSearch;
+}
 int main()
 {
     // 创建二叉树
-    Node<int> *node01 = new Node<int>(1);
-    Node<int> *node02 = new Node<int>(2);
-    Node<int> *node03 = new Node<int>(3);
-    Node<int> *node04 = new Node<int>(4);
-    Node<int> *node05 = new Node<int>(5);
-    Node<int> *node06 = new Node<int>(6);
-    Node<int> *node07 = new Node<int>(7);
+    Node<int> *node01 = new Node<int>(1); // 4
+    Node<int> *node02 = new Node<int>(2); // 2
+    Node<int> *node03 = new Node<int>(3); // 6
+    Node<int> *node04 = new Node<int>(4); // 1
+    Node<int> *node05 = new Node<int>(5); // 3
+    Node<int> *node06 = new Node<int>(6); // 5
+    Node<int> *node07 = new Node<int>(7); // 7
     // Node<int> root=new Node(8);
     node01->left = node02;
     node01->right = node03;
     node02->left = node04;
-    // node02->right = node05;
-    // node03->left = node06;
-    // node03->right = node07;
+    node02->right = node05;
+    node03->left = node06;
+    node03->right = node07;
 
     beforeReadRe(node01);
     cout << endl;
@@ -278,5 +336,16 @@ int main()
     int maxDepth = depthPriority(node01);
     cout << endl;
     cout << "maxDepth: " << maxDepth << endl;
+
+    SearchReturn<int> SR = isSearchTree(node01);
+    if (SR.isSearch)
+        cout << "是搜索二叉树" << endl;
+    else
+        cout << "不是搜索二叉树" << endl;
+    bool isSearch= isSearchTree00(node01);
+    if (isSearch == true)
+        cout << "是搜索二叉树" << endl;
+    else
+        cout << "不是搜索二叉树" << endl;
     return 0;
 }
