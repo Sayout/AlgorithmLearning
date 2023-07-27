@@ -2,7 +2,7 @@
  * @Author: Sayout zwbalala@icloud.com
  * @Date: 2023-07-27 11:52:01
  * @LastEditors: Sayout zwbalala@icloud.com
- * @LastEditTime: 2023-07-27 19:09:36
+ * @LastEditTime: 2023-07-27 20:11:40
  * @FilePath: \C++\ZuoAlgorithm\chapter3\binaryTree.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -243,6 +243,50 @@ int depthPriority00(Node<T> *root)
     maxDepth = max(maxDepth, curr_nodes);
     return maxDepth;
 }
+// TODO 宽度优先问题：判断是否是完全二叉树
+template <typename T>
+bool isCompeleteTree(Node<T> *root)
+{
+    if (root == nullptr)
+    {
+        cout << "compelete Binary tree" << endl;
+        return true;
+    }
+    queue<Node<T> *> que;
+    Node<T> *temp = root;
+    que.push(root);
+    bool flag = true; // 表示当前遍历的节点的左右孩子双全
+    while (!que.empty())
+    {
+        temp = que.front();
+        if (temp->left != nullptr)
+        {
+            que.push(temp->left);
+        }
+        if (temp->right != nullptr)
+        {
+            que.push(temp->right);
+        }
+        if (temp->right != nullptr && temp->left == nullptr)
+        {
+            cout << "Not compelete Binary tree" << endl;
+            return false;
+        }
+        if (!flag && (temp->right != nullptr || temp->left != nullptr))
+        {
+            cout << "Not compelete Binary tree" << endl;
+            return false;
+        }
+        if (temp->right == nullptr || temp->left == nullptr)
+        {
+            flag = false;
+        }
+        que.pop();
+    }
+    cout << "compelete Binary tree" << endl;
+    return true;
+}
+
 // TODO 4递归套路一系列
 // 搜索二叉树：
 template <typename T>
@@ -291,7 +335,8 @@ bool isSearchTree00(Node<T> *root)
     {
         return true;
     }
-    if(isSearch==false) return false; 
+    if (isSearch == false)
+        return false;
     isSearchTree00(root->left);
     if (before > root->value)
     {
@@ -301,6 +346,67 @@ bool isSearchTree00(Node<T> *root)
     isSearchTree00(root->right);
     return isSearch;
 }
+
+// TODO 平衡二叉树
+class BalanceRetuen
+{
+public:
+    bool isBalance;
+    int height;
+    // int rightHeight;
+    BalanceRetuen(bool iB, int H)
+    {
+        this->isBalance = iB;
+        this->height = H;
+        // this->rightHeight=rH;
+    }
+};
+template <typename T>
+BalanceRetuen isBalanceTree(Node<T> *root)
+{
+    if (root == nullptr)
+    {
+        return BalanceRetuen(true, 0);
+    }
+    BalanceRetuen BL = isBalanceTree(root->left);
+    BalanceRetuen BR = isBalanceTree(root->right);
+    int height = max(BL.height, BR.height) + 1;
+    bool isbanlanced = (abs(BL.height - BR.height) < 2) && (BL.isBalance) && (BR.isBalance);
+    return BalanceRetuen(isbanlanced, height);
+}
+// TODO 按段是否是满二叉树
+
+class FullReturn
+{
+public:
+    bool isFull;
+    int height;
+    int nodes;
+
+    FullReturn(bool iF, int h, int ns)
+    {
+        this->height = h;
+        this->isFull = iF;
+        this->nodes = ns;
+    }
+};
+template <typename T>
+FullReturn isFullTree(Node<T> *root)
+{
+    if (root == nullptr)
+    {
+        return FullReturn(true, 0, 0);
+    }
+    FullReturn LF = isFullTree(root->left);
+    FullReturn RF = isFullTree(root->right);
+    int nodes = LF.nodes + RF.nodes + 1;
+    int height = max(LF.height, RF.height) + 1;
+    bool isFull = (LF.isFull) && (RF.isFull) && (nodes == ((1 << (height)) - 1));
+    return FullReturn(isFull, height, nodes);
+    //TODO ！！记住！！不要随便调整class以及解析函数中参数的位置，否则容易出错
+}
+
+
 int main()
 {
     // 创建二叉树
@@ -342,10 +448,24 @@ int main()
         cout << "是搜索二叉树" << endl;
     else
         cout << "不是搜索二叉树" << endl;
-    bool isSearch= isSearchTree00(node01);
+    bool isSearch = isSearchTree00(node01);
     if (isSearch == true)
         cout << "是搜索二叉树" << endl;
     else
         cout << "不是搜索二叉树" << endl;
+
+    BalanceRetuen BR = isBalanceTree(node01);
+    if (BR.isBalance == true)
+        cout << "是平衡二叉树" << endl;
+    else
+        cout << "不是平衡二叉树" << endl;
+
+    isCompeleteTree(node01);
+
+    FullReturn iF=isFullTree(node01);
+    if(iF.isFull==true)
+        cout << "是满二叉树" << endl;
+    else
+        cout << "不是满二叉树" << endl;
     return 0;
 }
