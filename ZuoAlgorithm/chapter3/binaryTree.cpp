@@ -2,7 +2,7 @@
  * @Author: Sayout zwbalala@icloud.com
  * @Date: 2023-07-27 11:52:01
  * @LastEditors: Sayout zwbalala@icloud.com
- * @LastEditTime: 2023-07-27 20:11:40
+ * @LastEditTime: 2023-07-29 11:53:33
  * @FilePath: \C++\ZuoAlgorithm\chapter3\binaryTree.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11,6 +11,7 @@
 #include <queue>
 #include <cmath>
 #include <unordered_map>
+#include <unordered_set>
 using namespace std;
 // **二叉树**
 template <typename T>
@@ -403,10 +404,142 @@ FullReturn isFullTree(Node<T> *root)
     int height = max(LF.height, RF.height) + 1;
     bool isFull = (LF.isFull) && (RF.isFull) && (nodes == ((1 << (height)) - 1));
     return FullReturn(isFull, height, nodes);
-    //TODO ！！记住！！不要随便调整class以及解析函数中参数的位置，否则容易出错
+    // TODO ！！记住！！不要随便调整class以及解析函数中参数的位置，否则容易出错
 }
 
+// TODO 找最低公共祖先
+//  在找最低公共祖先的时候 two methods:
+// methods 借用hashMap记录节点的父节点，这样相当于在原来的二叉树中插入了parent指针
+template <typename T>
+void getMapping(Node<T> *root, unordered_map<Node<T> *, Node<T> *> &mapping)
+{
+    if (root == nullptr)
+        return;
+    if (root->right != nullptr)
+    {
+        mapping[root->right] = root;
+    }
+    if (root->left != nullptr)
+    {
+        mapping[root->left] = root;
+    }
+    getMapping(root->left, mapping);
+    getMapping(root->right, mapping);
+}
+template <typename T>
+void commonAncestor(Node<T> *root, Node<T> *node01, Node<T> *node02)
+{
+    unordered_map<Node<T> *, Node<T> *> map_parent;
+    unordered_set<Node<T> *> ancestors;
+    map_parent[root] = root;
+    getMapping(root, map_parent);
+    Node<T> *temp01 = node01;
+    //!! 注意，map_parent，应该注意当当前节点是另外一个节点的祖先节点的情况，所以当前节点一定要加入到ancestors中
+    ancestors.insert(temp01);
+    while (map_parent[temp01] != temp01)
+    {
+        ancestors.insert(map_parent[temp01]);
+        temp01 = map_parent[temp01];
+    }
+    temp01 = node02;
+    if (ancestors.find(node02) != ancestors.end())
+    {
+        cout << node02->value << "是" << node01->value << "的祖先节点" << endl;
+    }
+    while (map_parent[temp01] != temp01)
+    {
+        if (ancestors.find(map_parent[temp01]) != ancestors.end())
+        {
+            cout << node02->value << "和" << node01->value << "的祖先节点是" << (map_parent[temp01])->value << endl;
+            break;
+        }
+        temp01 = map_parent[temp01];
+    }
+}
 
+// methods 分析几种情况
+// 由于递归本质上是从底层往顶层进行递归，所以从最底层开始做如下判断：
+/*
+（1）self=node1,向上传递
+（2）self=node2,向上传递
+（3）self=nullptr ，return nullptr
+（4）其他情况：对子树进行分类
+*/
+// 找到的一定是最近的祖先
+
+template <typename T>
+Node<T> *getCommonAncestor(Node<T> *root, Node<T> *node01, Node<T> *node02)
+{
+    if (root == nullptr || root == node01 || root == node02)
+    {
+        return root;
+    }
+    Node<T> *left = getCommonAncestor(root->left, node01, node02);
+    Node<T> *right = getCommonAncestor(root->right, node01, node02);
+    if ((left == node01 && right == node02) || (left == node02 && right == node01))
+    {
+        return root;
+    }
+    // if(left==nullptr&&right==nullptr){return nullptr;}
+
+    return left == nullptr ? right : left; // 当出现子节点不是nullptr的情况时，除了两边都不是空情况，其他都返回非空节点
+}
+// 【纸条打印】
+void printFlodPaper(int N, string flag)
+{
+    if (N == 0)
+    {
+        return;
+    }
+    printFlodPaper(N - 1, "down");
+    cout << flag << " ";
+    printFlodPaper(N - 1, "up");
+}
+// TODO【先序序列化】：序列化和反序列化的时候，不知道为什么用string和vector都会出现错误，最后用queue的方法，（参数时引用）最终解决了问题
+// TODO:这里有点疑惑的？？
+//  处理字符串的时候，在通过下标获取数字的时候，不知道为什么返回的是int 类型
+//  ！！to_string()转化成字符串s.compare()比较两个字符串的内容是否一致，否则==按照内存地址判断是否是同一个字符串
+template <typename T>
+void serializeBefore(Node<T> *root, queue<char>&s)
+{
+    if (root == nullptr)
+    {
+        s.push('#');
+        return ;
+    }
+    s.push(root->value+'0');
+    
+    serializeBefore(root->left, s);
+    serializeBefore(root->right, s);
+    
+}
+// index表示字符串开始的下标
+// 注意，使用template的时候，函数的参数里面必须有template
+
+Node<int>* serializeBeforeRe(queue<char>&s)
+{   
+    if (s.empty())
+    { 
+       return nullptr;
+    }
+    if(s.front()=='#'){
+        s.pop();
+        return nullptr;
+    }
+    else
+    {   Node<int>*node=new Node<int>(s.front()-48);
+        s.pop();
+        if (!s.empty())
+        {  
+            node->left = serializeBeforeRe(s);
+        }
+        if (!s.empty())
+        {
+            node->right = serializeBeforeRe(s);
+        }
+        return node;
+    }
+}
 int main()
 {
     // 创建二叉树
@@ -418,12 +551,12 @@ int main()
     Node<int> *node06 = new Node<int>(6); // 5
     Node<int> *node07 = new Node<int>(7); // 7
     // Node<int> root=new Node(8);
-    node01->left = node02;
+    // node01->left = node02;
     node01->right = node03;
     node02->left = node04;
     node02->right = node05;
     node03->left = node06;
-    node03->right = node07;
+    // node03->right = node07;
 
     beforeReadRe(node01);
     cout << endl;
@@ -462,10 +595,32 @@ int main()
 
     isCompeleteTree(node01);
 
-    FullReturn iF=isFullTree(node01);
-    if(iF.isFull==true)
+    FullReturn iF = isFullTree(node01);
+    if (iF.isFull == true)
         cout << "是满二叉树" << endl;
     else
         cout << "不是满二叉树" << endl;
+    // commonAncestor(node01,node01,node05);
+    // commonAncestor(node01,node05,node07);
+    // commonAncestor(node01,node04,node05);
+    // cout<< getCommonAncestor(node01,node01,node05)->value<<endl;
+    // cout<<getCommonAncestor(node01,node05,node07)->value<<endl;
+    // cout<< getCommonAncestor(node01,node04,node05)->value<<endl;
+
+    printFlodPaper(3, "down");
+    cout << endl;
+    //最好不要用string ，string由于是标准库，不能调试
+    queue<char> str;
+    (serializeBefore(node01, str));
+    queue<char> copy=str;
+    while(!copy.empty()){
+        cout<<copy.front()<<endl;
+        copy.pop();
+    }
+    Node<int>*s_node=serializeBeforeRe(str);
+    beforeReadRe(s_node);
+    //    string s1=to_string(122);
+    // cout<<s1<<endl;
+
     return 0;
 }
