@@ -2,7 +2,7 @@
  * @Author: Sayout zwbalala@icloud.com
  * @Date: 2023-07-27 11:52:01
  * @LastEditors: Sayout zwbalala@icloud.com
- * @LastEditTime: 2023-07-29 11:53:33
+ * @LastEditTime: 2023-07-29 12:14:27
  * @FilePath: \C++\ZuoAlgorithm\chapter3\binaryTree.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -410,6 +410,7 @@ FullReturn isFullTree(Node<T> *root)
 // TODO 找最低公共祖先
 //  在找最低公共祖先的时候 two methods:
 // methods 借用hashMap记录节点的父节点，这样相当于在原来的二叉树中插入了parent指针
+// TODO:在getMapping()设置父节点的映射时应该在调用getMapping函数之前自行设置root.parent=root
 template <typename T>
 void getMapping(Node<T> *root, unordered_map<Node<T> *, Node<T> *> &mapping)
 {
@@ -500,37 +501,38 @@ void printFlodPaper(int N, string flag)
 //  处理字符串的时候，在通过下标获取数字的时候，不知道为什么返回的是int 类型
 //  ！！to_string()转化成字符串s.compare()比较两个字符串的内容是否一致，否则==按照内存地址判断是否是同一个字符串
 template <typename T>
-void serializeBefore(Node<T> *root, queue<char>&s)
+void serializeBefore(Node<T> *root, queue<char> &s)
 {
     if (root == nullptr)
     {
         s.push('#');
-        return ;
+        return;
     }
-    s.push(root->value+'0');
-    
+    s.push(root->value + '0');
+
     serializeBefore(root->left, s);
     serializeBefore(root->right, s);
-    
 }
 // index表示字符串开始的下标
 // 注意，使用template的时候，函数的参数里面必须有template
 
-Node<int>* serializeBeforeRe(queue<char>&s)
-{   
+Node<int> *serializeBeforeRe(queue<char> &s)
+{
     if (s.empty())
-    { 
-       return nullptr;
+    {
+        return nullptr;
     }
-    if(s.front()=='#'){
+    if (s.front() == '#')
+    {
         s.pop();
         return nullptr;
     }
     else
-    {   Node<int>*node=new Node<int>(s.front()-48);
+    {
+        Node<int> *node = new Node<int>(s.front() - 48);
         s.pop();
         if (!s.empty())
-        {  
+        {
             node->left = serializeBeforeRe(s);
         }
         if (!s.empty())
@@ -538,6 +540,48 @@ Node<int>* serializeBeforeRe(queue<char>&s)
             node->right = serializeBeforeRe(s);
         }
         return node;
+    }
+}
+
+// TODO 找后继节点
+template <typename T>
+Node<T> *findMidNext(Node<T> *root, Node<T> *node)
+{
+    if (root == nullptr || node == nullptr)
+    {
+        return nullptr;
+    }
+    unordered_map<Node<T> *, Node<T> *> map_parent;
+    map_parent[root] = root;
+    getMapping(root, map_parent);
+    if (node->right != nullptr)
+    {
+        Node<T> *temp = node->right;
+        while (temp->left != nullptr)
+        {
+            temp = temp->left;
+        }
+        cout << "nextNode: " << temp->value << endl;
+        return temp;
+    }
+    else
+    {
+        // 没有右子树
+        Node<T> *parent = node;
+        while ((map_parent[parent] != parent) && (map_parent[parent]->left != parent))
+        {
+            parent = map_parent[parent];
+        }
+        if (map_parent[parent]->left != parent)
+        {
+            cout << "没有后继节点" << endl;
+            return nullptr;
+        }
+        else
+        {
+            cout << "nexxtPoint:" << map_parent[parent]->value << endl;
+            return map_parent[parent];
+        }
     }
 }
 int main()
@@ -551,12 +595,12 @@ int main()
     Node<int> *node06 = new Node<int>(6); // 5
     Node<int> *node07 = new Node<int>(7); // 7
     // Node<int> root=new Node(8);
-    // node01->left = node02;
+    node01->left = node02;
     node01->right = node03;
     node02->left = node04;
     node02->right = node05;
     node03->left = node06;
-    // node03->right = node07;
+    node03->right = node07;
 
     beforeReadRe(node01);
     cout << endl;
@@ -609,18 +653,21 @@ int main()
 
     printFlodPaper(3, "down");
     cout << endl;
-    //最好不要用string ，string由于是标准库，不能调试
+    // 最好不要用string ，string由于是标准库，不能调试
     queue<char> str;
     (serializeBefore(node01, str));
-    queue<char> copy=str;
-    while(!copy.empty()){
-        cout<<copy.front()<<endl;
+    queue<char> copy = str;
+    while (!copy.empty())
+    {
+        cout << copy.front() << endl;
         copy.pop();
     }
-    Node<int>*s_node=serializeBeforeRe(str);
+    Node<int> *s_node = serializeBeforeRe(str);
     beforeReadRe(s_node);
     //    string s1=to_string(122);
     // cout<<s1<<endl;
-
+    findMidNext(node01, node07);
+    findMidNext(node01, node05);
+    findMidNext(node01, node02);
     return 0;
 }
