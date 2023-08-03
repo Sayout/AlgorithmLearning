@@ -175,6 +175,7 @@ public:
             }
             return findHead(node01) == findHead(node02);
         }
+        return false;
     }
     void unionSet(T value1, T value2)
     {
@@ -273,6 +274,392 @@ int KMPGetSubStr(vector<char> str1, vector<char> str2)
         return -1;
     }
 }
+// Manacher get最长回文子串的长度
+//  # 1 # 2 # 3 #
+int ManacherGetMaxSubString(vector<char> charArr)
+{
+    vector<char> ManacherString(charArr.size() * 2 + 1, '#');
+    for (int i = 0; i < charArr.size(); i++)
+    {
+        ManacherString[2 * i + 1] = charArr[i];
+    }
+    int R = -1; // 回文半径右边界的下一个
+    int C = -1;
+    int maxLen = -1;
+    vector<int> RLen(ManacherString.size());
+    for (int i = 0; i < ManacherString.size(); i++)
+    {
+        RLen[i] = R > i ? min(RLen[2 * C - i], R - i) : 1;
+        // 最小半径
+        // 进行暴力扩充
+        while (i - RLen[i] > -1 && i + RLen[i] < ManacherString.size())
+        {
+            if (ManacherString[i + RLen[i]] == ManacherString[i - RLen[i]])
+            {
+                RLen[i]++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        maxLen = max(maxLen, RLen[i]);
+        if (i + RLen[i] > R)
+        {
+            R = RLen[i] + i;
+            C = i;
+        }
+    }
+    cout << "max radium :" << maxLen - 1 << endl;
+    return maxLen - 1;
+}
+// TODO: 滑动窗口：随时返回窗口内的最大值/min
+// TODO:千万要记住，我们存在deque里面的是index
+int slipWindowMax(vector<int> window, int L, int R)
+{
+    if (L > R)
+    {
+        return -1;
+    }
+    else if (L == R)
+    {
+        return window[L];
+    }
+    else
+    {
+        int l_ori = 0;
+        int r_ori = 0;
+        // 当R向右移动时
+        deque<int> sta;
+        sta.push_back(0); // 压入的是下标
+        while (r_ori != R)
+        {
+            r_ori++;
+            if (window[r_ori] < window[sta.back()])
+            {
+                sta.push_back(r_ori);
+            }
+            else
+            {
+                // 保持严格的递增顺序，即使相等也需要更新
+                while ((!sta.empty()) && window[r_ori] >= window[(sta.back())])
+                {
+                    sta.pop_back();
+                }
+                sta.push_back(r_ori); // 别忘了弹出之后压入
+            }
+        }
+        while (l_ori != L)
+        {
+            if (sta.front() == l_ori)
+            {
+                sta.pop_front();
+            }
+            l_ori++;
+        }
+        cout << L << "-->" << R << "-max-: " << window[sta.front()] << endl;
+        return window[sta.front()];
+    }
+}
+// TODO:单调栈
+// 通过单调栈，找到一组数组中每个数字的左边第一个比自己大的数，右边第一个比自己大的数
+// 比自己小的数是一样的道理
+// class NearestBigger
+// {
+// public:
+//     int leftB = -1;
+//     int rightB = -1;
+// };
+// vector<NearestBigger *> getNearestBigger(vector<int> arr)
+// {
+//     vector<NearestBigger *> NB;
+//     // 初始化
+//     for (int i = 0; i < arr.size(); i++)
+//     {
+//         NB.push_back(new NearestBigger());
+//     }
+//     stack<vector<int>> monotonySta;
+
+//     for (int i = 0; i < arr.size(); i++)
+//     {
+//         if (monotonySta.empty())
+//         {
+//             vector<int> tempVec{i};
+//             monotonySta.push(tempVec);
+//             continue;
+//         }
+//         {
+//             vector<int> *topVec = &(monotonySta.top());
+//             vector<int> nn = *topVec;
+//             //!!TODO:还是原来的问题，如果我们只是这样写，改变的仅仅是拷贝的数值，所以这里要用引用
+//             if (arr[i] < arr[(monotonySta.top())[0]])
+//             {
+//                 vector<int> tempVec{i};
+//                 monotonySta.push(tempVec);
+//             }
+//             else if (arr[i] > arr[(*topVec)[topVec->size() - 1]])
+//             {
+//                 // 返回信息的情况
+//                 while (!monotonySta.empty() && (arr[monotonySta.top()[0]] < arr[i]))
+//                 {
+//                     topVec = &(monotonySta.top());
+//                     nn = *topVec;
+//                     monotonySta.pop();
+//                     //!!TODO:monotonySta弹出的时候，原来的topVec发生了变化，可能是被释放了
+//                     topVec = &(nn);
+//                     int rightIndex = i;
+//                     int leftIndex = -1;
+//                     if (!monotonySta.empty())
+//                     {
+//                         vector<int> newTop = monotonySta.top();
+//                         leftIndex = newTop[newTop.size() - 1];
+//                     }
+//                     for (int m = (topVec->size()) - 1; m >= 0; m--)
+//                     {
+
+//                         int recordIndex = (*topVec)[m];
+
+//                         NB[recordIndex]->rightB = i;
+//                         NB[recordIndex]->leftB = leftIndex;
+//                     }
+//                 }
+//                 //!!TODO:光结算了，没有把当前的节点压入
+//                 vector<int> tempVec{i};
+//                 monotonySta.push(tempVec);
+//             }
+//             else
+//             {
+//                 (*topVec).push_back(i);
+//             }
+//         }
+//     }
+//     // for循环结束之后，如果stack里面还有数字，仍然需要进行结算，此时
+//     int rightIndex = -1;
+//     while (!monotonySta.empty())
+//     {
+//         // 此时不需要更改stack内的数字，所以直接值引用
+//         vector<int> temp = monotonySta.top();
+//         monotonySta.pop();
+//         int leftIndex = -1;
+//         if (!monotonySta.empty())
+//         {
+//             leftIndex = monotonySta.top()[0];
+//         }
+//         for (int i = 0; i < temp.size(); i++)
+//         {
+//             int recordIndex = temp[i];
+//             NB[recordIndex]->rightB = rightIndex;
+//             NB[recordIndex]->leftB = leftIndex;
+//         }
+//     }
+//     return NB;
+// }
+// TODO:个人认为单调栈一点都不简单，容易出各种莫名其妙的bug,这里需要吸取教训，
+// 在出现class的时候，最好还是用指针，不要用引用
+// 数组中累积和与最小值的乘积，假设叫做指标A。 给定一个数组，请返回子数组中，指标A最大的值。
+// 如果一定包括arr
+class NearestBigger
+{
+public:
+    int leftB = -1;
+    int rightB = -1;
+};
+vector<NearestBigger *> getNearestBigger(vector<int> arr)
+{
+    vector<NearestBigger *> NB;
+    // 初始化
+    for (int i = 0; i < arr.size(); i++)
+    {
+        NB.push_back(new NearestBigger());
+    }
+    stack<vector<int> *> monotonySta;
+
+    for (int i = 0; i < arr.size(); i++)
+    {
+        if (monotonySta.empty())
+        {
+            vector<int> *tempVec = new vector<int>;
+            (*tempVec).push_back(i);
+            monotonySta.push(tempVec);
+            continue;
+        }
+        {
+            vector<int> *topVec = (monotonySta.top());
+            // vector<int> nn = *topVec;
+            //!!TODO:还是原来的问题，如果我们只是这样写，改变的仅仅是拷贝的数值，所以这里要用引用
+            if (arr[i] < arr[(*(monotonySta.top()))[0]])
+            {
+                vector<int> *tempVec = new vector<int>;
+                (*tempVec).push_back(i);
+                monotonySta.push(tempVec);
+            }
+            else if (arr[i] > arr[(*topVec)[topVec->size() - 1]])
+            {
+                // 返回信息的情况
+                while (!monotonySta.empty() && (arr[(*monotonySta.top())[0]] < arr[i]))
+                {
+                    topVec = (monotonySta.top());
+                    // nn = *topVec;
+                    monotonySta.pop();
+                    //!!TODO:monotonySta弹出的时候，原来的topVec发生了变化，可能是被释放了
+                    // topVec = &(nn);
+                    int rightIndex = i;
+                    int leftIndex = -1;
+                    if (!monotonySta.empty())
+                    {
+                        vector<int> *newTop = monotonySta.top();
+                        leftIndex = (*newTop)[newTop->size() - 1];
+                    }
+                    for (int m = (topVec->size()) - 1; m >= 0; m--)
+                    {
+
+                        int recordIndex = (*topVec)[m];
+
+                        NB[recordIndex]->rightB = i;
+                        NB[recordIndex]->leftB = leftIndex;
+                    }
+                }
+                //!!TODO:光结算了，没有把当前的节点压入
+                vector<int> *tempVec = new vector<int>;
+                (*tempVec).push_back(i);
+                monotonySta.push(tempVec);
+            }
+            else
+            {
+                (*topVec).push_back(i);
+            }
+        }
+    }
+    // for循环结束之后，如果stack里面还有数字，仍然需要进行结算，此时
+    int rightIndex = -1;
+    while (!monotonySta.empty())
+    {
+        // 此时不需要更改stack内的数字，所以直接值引用
+        vector<int> *temp = monotonySta.top();
+        monotonySta.pop();
+        int leftIndex = -1;
+        if (!monotonySta.empty())
+        {
+            leftIndex = (*monotonySta.top())[0];
+        }
+        for (int i = 0; i < temp->size(); i++)
+        {
+            int recordIndex = (*temp)[i];
+            NB[recordIndex]->rightB = rightIndex;
+            NB[recordIndex]->leftB = leftIndex;
+        }
+    }
+    return NB;
+}
+
+vector<NearestBigger *> getNearestSmaller(vector<int> arr)
+{
+    vector<NearestBigger *> NB;
+    // 初始化
+    for (int i = 0; i < arr.size(); i++)
+    {
+        NB.push_back(new NearestBigger());
+    }
+    stack<vector<int> *> monotonySta;
+
+    for (int i = 0; i < arr.size(); i++)
+    {
+        if (monotonySta.empty())
+        {
+            vector<int> *tempVec = new vector<int>;
+            (*tempVec).push_back(i);
+            monotonySta.push(tempVec);
+            continue;
+        }
+        {
+            vector<int> *topVec = (monotonySta.top());
+            // vector<int> nn = *topVec;
+            //!!TODO:还是原来的问题，如果我们只是这样写，改变的仅仅是拷贝的数值，所以这里要用引用
+            if (arr[i] > arr[(*(monotonySta.top()))[0]])
+            {
+                vector<int> *tempVec = new vector<int>;
+                (*tempVec).push_back(i);
+                monotonySta.push(tempVec);
+            }
+            else if (arr[i] < arr[(*topVec)[topVec->size() - 1]])
+            {
+                // 返回信息的情况
+                while (!monotonySta.empty() && (arr[(*monotonySta.top())[0]] > arr[i]))
+                {
+                    topVec = (monotonySta.top());
+                    // nn = *topVec;
+                    monotonySta.pop();
+                    //!!TODO:monotonySta弹出的时候，原来的topVec发生了变化，可能是被释放了
+                    // topVec = &(nn);
+                    int rightIndex = i;
+                    int leftIndex = -1;
+                    if (!monotonySta.empty())
+                    {
+                        vector<int> *newTop = monotonySta.top();
+                        leftIndex = (*newTop)[newTop->size() - 1];
+                    }
+                    for (int m = (topVec->size()) - 1; m >= 0; m--)
+                    {
+
+                        int recordIndex = (*topVec)[m];
+
+                        NB[recordIndex]->rightB = i;
+                        NB[recordIndex]->leftB = leftIndex;
+                    }
+                }
+                //!!TODO:光结算了，没有把当前的节点压入
+                vector<int> *tempVec = new vector<int>;
+                (*tempVec).push_back(i);
+                monotonySta.push(tempVec);
+            }
+            else
+            {
+                (*topVec).push_back(i);
+            }
+        }
+    }
+    // for循环结束之后，如果stack里面还有数字，仍然需要进行结算，此时
+    int rightIndex = -1;
+    while (!monotonySta.empty())
+    {
+        // 此时不需要更改stack内的数字，所以直接值引用
+        vector<int> *temp = monotonySta.top();
+        monotonySta.pop();
+        int leftIndex = -1;
+        if (!monotonySta.empty())
+        {
+            leftIndex = (*monotonySta.top())[0];
+        }
+        for (int i = 0; i < temp->size(); i++)
+        {
+            int recordIndex = (*temp)[i];
+            NB[recordIndex]->rightB = rightIndex;
+            NB[recordIndex]->leftB = leftIndex;
+        }
+    }
+    return NB;
+}
+// TODO:获取最大的指标A:
+void getMaxA(vector<int> arr)
+{
+    vector<NearestBigger *> NB = getNearestSmaller(arr);
+    int maxA = -1;
+    for (int i = 0; i < arr.size(); i++)
+    {
+        int leftBound = NB[i]->leftB == -1 ? 0 : NB[i]->leftB + 1;
+        int rightBound = NB[i]->rightB == -1 ? arr.size() - 1 : NB[i]->rightB - 1;
+        int sum = 0;
+        cout << leftBound << ":" << rightBound << " ";
+        while (leftBound <= rightBound)
+        {
+            sum += arr[leftBound];
+            leftBound++;
+        }
+        cout << i << " : " << arr[i] << " * " << sum << " = " << sum * arr[i] << endl;
+        maxA = max(maxA, sum * arr[i]);
+    }
+    cout << "max A ：" << maxA << endl;
+}
 int main()
 {
     RandomPool *RP = new RandomPool();
@@ -312,5 +699,47 @@ int main()
 
     vector<int> nextArr = getNextArr(subStr);
     cout << "匹配字串开始的位置index01: " << KMPGetSubStr(str01, str02) << endl;
+    ManacherGetMaxSubString(vector<char>{'1', '2', '2', '1', '4', '1', '6', '7', '8', '7', '6', '1', '3', '1', '2', '2', '1'});
+    slipWindowMax(vector<int>{
+                      3,
+                      2,
+                      4,
+                      6,
+                      6,
+                      3,
+                      5,
+                      4,
+                      5,
+                  },
+                  3, 6);
+    slipWindowMax(vector<int>{
+                      3,
+                      2,
+                      4,
+                      6,
+                      6,
+                      3,
+                      5,
+                      4,
+                      5,
+                  },
+                  4, 6);
+    slipWindowMax(vector<int>{
+                      3,
+                      2,
+                      4,
+                      6,
+                      6,
+                      3,
+                      5,
+                      4,
+                      5,
+                  },
+                  5, 6);
+    //     deque<int>de{1,2,3,4};
+    //    cout<< de.back()<<endl;;
+
+    vector<NearestBigger *> NB = getNearestBigger(vector<int>{5, 5, 4, 6, 6, 7, 2, 3, 0});
+    getMaxA(vector<int>{5, 5, 4, 6, 6, 7, 2, 3, 0});
     return 0;
 }
